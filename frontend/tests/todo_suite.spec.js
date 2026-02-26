@@ -123,6 +123,8 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
         const taskItem = page.locator('.task-item').filter({ hasText: title });
         await taskItem.locator('.checkbox').click();
 
+        // After marking done, it moves to History tab
+        await page.getByRole('button', { name: 'History' }).click();
         await expect(taskItem.locator('.task-title')).toHaveClass(/done/);
     });
 
@@ -132,9 +134,12 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
 
         const taskItem = page.locator('.task-item').filter({ hasText: title });
         await taskItem.locator('.checkbox').click(); // Mark Done
+
+        await page.getByRole('button', { name: 'History' }).click();
         await expect(taskItem.locator('.task-title')).toHaveClass(/done/);
 
         await taskItem.locator('.checkbox').click(); // Unmark Done
+        await page.getByRole('button', { name: 'Active Tasks' }).click();
         await expect(taskItem.locator('.task-title')).not.toHaveClass(/done/);
     });
 

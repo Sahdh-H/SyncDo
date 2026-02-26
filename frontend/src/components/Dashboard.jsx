@@ -8,6 +8,7 @@ const Dashboard = ({ token, setToken }) => {
     const [newTask, setNewTask] = useState({ title: '', description: '', due_date: '', priority: 'medium' });
     const [isAdding, setIsAdding] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'history'
 
     const api = axios.create({
         baseURL: 'http://localhost:8000',
@@ -93,14 +94,33 @@ const Dashboard = ({ token, setToken }) => {
             </div>
 
             <main>
-                <button
-                    onClick={() => setIsAdding(!isAdding)}
-                    className="btn btn-primary"
-                    style={{ marginBottom: '2rem' }}
-                >
-                    {isAdding ? 'Close Form' : 'Add a New Task'}
-                    <Plus size={24} />
-                </button>
+                <div className="tabs-container" style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem', background: '#f1f5f9', padding: '5px', borderRadius: '15px' }}>
+                    <button
+                        onClick={() => setActiveTab('tasks')}
+                        className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`}
+                        style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', fontWeight: 700, cursor: 'pointer', transition: '0.3s', background: activeTab === 'tasks' ? 'white' : 'transparent', color: activeTab === 'tasks' ? 'var(--primary)' : 'var(--text-muted)', boxShadow: activeTab === 'tasks' ? '0 4px 12px rgba(0,0,0,0.05)' : 'none' }}
+                    >
+                        Active Tasks
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+                        style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', fontWeight: 700, cursor: 'pointer', transition: '0.3s', background: activeTab === 'history' ? 'white' : 'transparent', color: activeTab === 'history' ? 'var(--primary)' : 'var(--text-muted)', boxShadow: activeTab === 'history' ? '0 4px 12px rgba(0,0,0,0.05)' : 'none' }}
+                    >
+                        History
+                    </button>
+                </div>
+
+                {activeTab === 'tasks' && (
+                    <button
+                        onClick={() => setIsAdding(!isAdding)}
+                        className="btn btn-primary"
+                        style={{ marginBottom: '2rem' }}
+                    >
+                        {isAdding ? 'Close Form' : 'Add a New Task'}
+                        <Plus size={24} />
+                    </button>
+                )}
 
                 <AnimatePresence>
                     {isAdding && (
@@ -162,55 +182,59 @@ const Dashboard = ({ token, setToken }) => {
                         <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                             <div className="pulsating">Loading your tasks...</div>
                         </div>
-                    ) : tasks.length === 0 ? (
+                    ) : (tasks.filter(t => activeTab === 'history' ? t.is_completed : !t.is_completed)).length === 0 ? (
                         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
                             <Smile size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem auto' }} />
-                            <p style={{ color: '#64748b', fontWeight: 600 }}>No tasks yet! Click the button above to start.</p>
+                            <p style={{ color: '#64748b', fontWeight: 600 }}>
+                                {activeTab === 'history' ? "No completed tasks yet. Go finish some!" : "No tasks yet! Click the button above to start."}
+                            </p>
                         </div>
                     ) : (
-                        tasks.map(task => (
-                            <motion.div
-                                layout
-                                key={task.id}
-                                className="task-item"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                            >
-                                <div
-                                    className={`checkbox ${task.is_completed ? 'done' : ''}`}
-                                    onClick={() => handleToggleComplete(task)}
+                        tasks
+                            .filter(t => activeTab === 'history' ? t.is_completed : !t.is_completed)
+                            .map(task => (
+                                <motion.div
+                                    layout
+                                    key={task.id}
+                                    className="task-item"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
                                 >
-                                    {task.is_completed && <Check size={18} />}
-                                </div>
-
-                                <div className="task-info">
-                                    <p className={`task-title ${task.is_completed ? 'done' : ''}`}>
-                                        {task.title}
-                                    </p>
-                                    <div className="task-meta">
-                                        {task.due_date && (
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <Clock size={12} /> {new Date(task.due_date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
-                                            </span>
-                                        )}
-                                        <span className="priority-badge" style={{
-                                            backgroundColor: task.priority === 'high' ? '#fee2e2' : task.priority === 'medium' ? '#fef3c7' : '#f1f5f9',
-                                            color: task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#d97706' : '#64748b'
-                                        }}>
-                                            {task.priority === 'high' ? 'Urgent' : task.priority === 'medium' ? 'Important' : 'Normal'}
-                                        </span>
+                                    <div
+                                        className={`checkbox ${task.is_completed ? 'done' : ''}`}
+                                        onClick={() => handleToggleComplete(task)}
+                                    >
+                                        {task.is_completed && <Check size={18} />}
                                     </div>
-                                </div>
 
-                                <button
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer' }}
-                                    className="delete-hover"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                            </motion.div>
-                        ))
+                                    <div className="task-info">
+                                        <p className={`task-title ${task.is_completed ? 'done' : ''}`}>
+                                            {task.title}
+                                        </p>
+                                        <div className="task-meta">
+                                            {task.due_date && (
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <Clock size={12} /> {new Date(task.due_date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                                </span>
+                                            )}
+                                            <span className="priority-badge" style={{
+                                                backgroundColor: task.priority === 'high' ? '#fee2e2' : task.priority === 'medium' ? '#fef3c7' : '#f1f5f9',
+                                                color: task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#d97706' : '#64748b'
+                                            }}>
+                                                {task.priority === 'high' ? 'Urgent' : task.priority === 'medium' ? 'Important' : 'Normal'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => handleDeleteTask(task.id)}
+                                        style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer' }}
+                                        className="delete-hover"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </motion.div>
+                            ))
                     )}
                 </div>
             </main>
