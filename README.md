@@ -29,12 +29,20 @@ npm run dev
 ```
 The frontend will run at `http://localhost:5173`.
 
+### 4. Running E2E Tests (Playwright)
+Ensure both the backend and frontend are running, then:
+```bash
+cd frontend
+npx playwright test --headed
+```
+You can view the detailed HTML report with `npx playwright show-report`.
+
 ## 🔑 Login
 For testing, you can use:
 - **Username**: `admin`
-- **Password**: `admin`
+- **Password**: `admin` (or `admin` in both fields)
 
 ## 🛠 Tech Stack
-- **Frontend**: React, Vite, Framer Motion, Lucide Icons.
-- **Backend**: FastAPI, SQLAlchemy (SQLite), JWT Authentication.
+- **Frontend**: React, Vite, Framer Motion, Lucide Icons, **Playwright (E2E Testing)**.
+- **Backend**: FastAPI, SQLAlchemy (SQLite), JWT Authentication, **uv (Package Management)**.
 - **Design**: Friendly-Minimalism (Vanilla CSS).
