@@ -213,10 +213,30 @@ textarea:focus {
   text-transform: uppercase;
 }
 
+.delete-hover:hover {
+  color: var(--danger) !important;
+  transform: scale(1.2);
+}
+
+.share-hover,
+.email-hover {
+  transition: all 0.2s;
+}
+
+.share-hover:hover {
+  color: #22c55e !important;
+  transform: scale(1.2);
+}
+
+.email-hover:hover {
+  color: #0284c7 !important;
+  transform: scale(1.2);
+}
+
 /* Stats */
 .stats-grid {
   display: grid;
-  grid-template-cols: 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-bottom: 2rem;
 }

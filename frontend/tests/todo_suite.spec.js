@@ -229,4 +229,33 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
         await expect(page.getByText('Share Task')).not.toBeVisible();
     });
 
+    test('22. Email Share: Modal opens and validates input', async ({ page }) => {
+        await performLogin(page);
+        const title = await createTask(page, 'Email Share Task');
+
+        const taskItem = page.locator('.task-item').filter({ hasText: title });
+        await taskItem.locator('button[title="Share via Email"]').click();
+
+        // Modal should be visible
+        await expect(page.getByRole('heading', { name: 'Share Task' })).toBeVisible();
+        await expect(page.getByText('Enter recipient email address')).toBeVisible();
+
+        // Send button should be disabled initially
+        const sendBtn = page.getByRole('button', { name: 'Send via Email' });
+        await expect(sendBtn).toBeDisabled();
+
+        // Fill partial email
+        const emailInput = page.getByPlaceholder('friend@example.com');
+        await emailInput.fill('invalid-email');
+        await expect(sendBtn).toBeDisabled();
+
+        // Fill valid email
+        await emailInput.fill('test@example.com');
+        await expect(sendBtn).toBeEnabled();
+
+        // Close modal
+        await page.locator('.card button svg').last().click();
+        await expect(page.getByText('Share Task')).not.toBeVisible();
+    });
+
 });

@@ -10,7 +10,9 @@ const Dashboard = ({ token, setToken }) => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'history'
     const [sharingTask, setSharingTask] = useState(null);
+    const [sharingType, setSharingType] = useState('whatsapp'); // 'whatsapp' or 'email'
     const [phoneData, setPhoneData] = useState({ countryCode: '+91', number: '' });
+    const [emailTo, setEmailTo] = useState('');
 
     const api = axios.create({
         baseURL: 'http://localhost:8000',
@@ -82,6 +84,24 @@ const Dashboard = ({ token, setToken }) => {
         window.open(`https://wa.me/${fullNumber}?text=${message}`, '_blank');
         setSharingTask(null);
         setPhoneData({ ...phoneData, number: '' });
+    };
+
+    const handleShareEmail = () => {
+        if (!sharingTask || !emailTo) return;
+
+        const subject = encodeURIComponent(`Task from SyncDo: ${sharingTask.title}`);
+        const body = encodeURIComponent(
+            `Hi,\n\nI'm sharing a task with you from SyncDo:\n\n` +
+            `✅ *Title:* ${sharingTask.title}\n` +
+            (sharingTask.description ? `📝 *Details:* ${sharingTask.description}\n` : '') +
+            (sharingTask.due_date ? `📅 *Due:* ${new Date(sharingTask.due_date).toLocaleString()}\n` : '') +
+            `🔥 *Priority:* ${sharingTask.priority.toUpperCase()}\n\n` +
+            `Sent via SyncDo Task Manager`
+        );
+
+        window.location.href = `mailto:${emailTo}?subject=${subject}&body=${body}`;
+        setSharingTask(null);
+        setEmailTo('');
     };
 
     return (
@@ -247,12 +267,20 @@ const Dashboard = ({ token, setToken }) => {
 
                                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                         <button
-                                            onClick={() => setSharingTask(task)}
+                                            onClick={() => { setSharingTask(task); setSharingType('whatsapp'); }}
                                             style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
                                             className="share-hover"
                                             title="Share to WhatsApp"
                                         >
                                             <Share2 size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => { setSharingTask(task); setSharingType('email'); }}
+                                            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                                            className="email-hover"
+                                            title="Share via Email"
+                                        >
+                                            <Mail size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteTask(task.id)}
@@ -293,43 +321,70 @@ const Dashboard = ({ token, setToken }) => {
                             </button>
 
                             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                                <div style={{ background: '#dcfce7', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
-                                    <Share2 size={30} color="#22c55e" />
+                                <div style={{ background: sharingType === 'whatsapp' ? '#dcfce7' : '#e0f2fe', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
+                                    {sharingType === 'whatsapp' ? <Share2 size={30} color="#22c55e" /> : <Mail size={30} color="#0284c7" />}
                                 </div>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Share Task</h2>
-                                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Enter mobile number to send via WhatsApp</p>
+                                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                                    {sharingType === 'whatsapp' ? 'Enter mobile number to send via WhatsApp' : 'Enter recipient email address'}
+                                </p>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
-                                <div style={{ width: '80px' }}>
-                                    <label className="input-label">Code</label>
-                                    <input
-                                        value={phoneData.countryCode}
-                                        onChange={e => setPhoneData({ ...phoneData, countryCode: e.target.value })}
-                                        placeholder="+91"
-                                    />
+                            {sharingType === 'whatsapp' ? (
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
+                                    <div style={{ width: '80px' }}>
+                                        <label className="input-label">Code</label>
+                                        <input
+                                            value={phoneData.countryCode}
+                                            onChange={e => setPhoneData({ ...phoneData, countryCode: e.target.value })}
+                                            placeholder="+91"
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label className="input-label">Mobile Number</label>
+                                        <input
+                                            type="tel"
+                                            value={phoneData.number}
+                                            onChange={e => setPhoneData({ ...phoneData, number: e.target.value.replace(/\D/g, '') })}
+                                            placeholder="Enter number"
+                                            autoFocus
+                                        />
+                                    </div>
                                 </div>
-                                <div style={{ flex: 1 }}>
-                                    <label className="input-label">Mobile Number</label>
+                            ) : (
+                                <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                                    <label className="input-label">Recipient Email</label>
                                     <input
-                                        type="tel"
-                                        value={phoneData.number}
-                                        onChange={e => setPhoneData({ ...phoneData, number: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="Enter number"
+                                        type="email"
+                                        value={emailTo}
+                                        onChange={e => setEmailTo(e.target.value)}
+                                        placeholder="friend@example.com"
                                         autoFocus
                                     />
                                 </div>
-                            </div>
+                            )}
 
-                            <button
-                                onClick={handleShareWhatsApp}
-                                disabled={!phoneData.number || phoneData.number.length < 5}
-                                className="btn btn-primary"
-                                style={{ background: (phoneData.number && phoneData.number.length >= 5) ? '#22c55e' : '#cbd5e1' }}
-                            >
-                                <Send size={20} />
-                                Send to WhatsApp
-                            </button>
+                            {sharingType === 'whatsapp' ? (
+                                <button
+                                    onClick={handleShareWhatsApp}
+                                    disabled={!phoneData.number || phoneData.number.length < 5}
+                                    className="btn btn-primary"
+                                    style={{ background: (phoneData.number && phoneData.number.length >= 5) ? '#22c55e' : '#cbd5e1' }}
+                                >
+                                    <Send size={20} />
+                                    Send to WhatsApp
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleShareEmail}
+                                    disabled={!emailTo || !emailTo.includes('@')}
+                                    className="btn btn-primary"
+                                    style={{ background: (emailTo && emailTo.includes('@')) ? '#0284c7' : '#cbd5e1' }}
+                                >
+                                    <Mail size={20} />
+                                    Send via Email
+                                </button>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}
