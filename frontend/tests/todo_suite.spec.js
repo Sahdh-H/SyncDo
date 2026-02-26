@@ -200,4 +200,33 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
         await expect(addBtn).toBeVisible();
     });
 
+    test('21. WhatsApp Share: Modal opens and validates input', async ({ page }) => {
+        await performLogin(page);
+        const title = await createTask(page, 'Share Test Task');
+
+        const taskItem = page.locator('.task-item').filter({ hasText: title });
+        await taskItem.locator('button[title="Share to WhatsApp"]').click();
+
+        // Modal should be visible
+        await expect(page.getByRole('heading', { name: 'Share Task' })).toBeVisible();
+        await expect(page.getByText('Enter mobile number to send via WhatsApp')).toBeVisible();
+
+        // Send button should be disabled initially
+        const sendBtn = page.getByRole('button', { name: 'Send to WhatsApp' });
+        await expect(sendBtn).toBeDisabled();
+
+        // Fill mobile number (less than 5 digits should remain disabled)
+        const phoneInput = page.getByPlaceholder('Enter number');
+        await phoneInput.fill('123');
+        await expect(sendBtn).toBeDisabled();
+
+        // Fill valid-ish mobile number
+        await phoneInput.fill('9876543210');
+        await expect(sendBtn).toBeEnabled();
+
+        // Close modal (locator for SVG Close button)
+        await page.locator('.card button svg').last().click();
+        await expect(page.getByText('Share Task')).not.toBeVisible();
+    });
+
 });

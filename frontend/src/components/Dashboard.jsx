@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, LogOut, RefreshCcw, Trash2, Check, Calendar, Clock, Smile } from 'lucide-react';
+import { Plus, LogOut, RefreshCcw, Trash2, Check, Calendar, Clock, Smile, Share2, Send, X } from 'lucide-react';
 import axios from 'axios';
 
 const Dashboard = ({ token, setToken }) => {
@@ -9,6 +9,8 @@ const Dashboard = ({ token, setToken }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('tasks'); // 'tasks' or 'history'
+    const [sharingTask, setSharingTask] = useState(null);
+    const [phoneData, setPhoneData] = useState({ countryCode: '+91', number: '' });
 
     const api = axios.create({
         baseURL: 'http://localhost:8000',
@@ -63,6 +65,23 @@ const Dashboard = ({ token, setToken }) => {
 
     const logout = () => {
         setToken(null);
+    };
+
+    const handleShareWhatsApp = () => {
+        if (!sharingTask || !phoneData.number) return;
+
+        const fullNumber = phoneData.countryCode.replace('+', '') + phoneData.number;
+        const message = encodeURIComponent(
+            `*Task from SyncDo* ✅\n\n` +
+            `*Title:* ${sharingTask.title}\n` +
+            (sharingTask.description ? `*Details:* ${sharingTask.description}\n` : '') +
+            (sharingTask.due_date ? `*Due:* ${new Date(sharingTask.due_date).toLocaleString()}\n` : '') +
+            `*Priority:* ${sharingTask.priority.toUpperCase()}`
+        );
+
+        window.open(`https://wa.me/${fullNumber}?text=${message}`, '_blank');
+        setSharingTask(null);
+        setPhoneData({ ...phoneData, number: '' });
     };
 
     return (
@@ -226,18 +245,95 @@ const Dashboard = ({ token, setToken }) => {
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => handleDeleteTask(task.id)}
-                                        style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer' }}
-                                        className="delete-hover"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <button
+                                            onClick={() => setSharingTask(task)}
+                                            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                                            className="share-hover"
+                                            title="Share to WhatsApp"
+                                        >
+                                            <Share2 size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteTask(task.id)}
+                                            style={{ background: 'transparent', border: 'none', color: '#cbd5e1', cursor: 'pointer' }}
+                                            className="delete-hover"
+                                            title="Delete Task"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </motion.div>
                             ))
                     )}
                 </div>
             </main>
+
+            {/* WhatsApp Share Modal */}
+            <AnimatePresence>
+                {sharingTask && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="card"
+                            style={{ width: '100%', maxWidth: '400px', position: 'relative' }}
+                        >
+                            <button
+                                onClick={() => setSharingTask(null)}
+                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                            >
+                                <X size={24} />
+                            </button>
+
+                            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                                <div style={{ background: '#dcfce7', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
+                                    <Share2 size={30} color="#22c55e" />
+                                </div>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Share Task</h2>
+                                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Enter mobile number to send via WhatsApp</p>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '1.5rem' }}>
+                                <div style={{ width: '80px' }}>
+                                    <label className="input-label">Code</label>
+                                    <input
+                                        value={phoneData.countryCode}
+                                        onChange={e => setPhoneData({ ...phoneData, countryCode: e.target.value })}
+                                        placeholder="+91"
+                                    />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label className="input-label">Mobile Number</label>
+                                    <input
+                                        type="tel"
+                                        value={phoneData.number}
+                                        onChange={e => setPhoneData({ ...phoneData, number: e.target.value.replace(/\D/g, '') })}
+                                        placeholder="Enter number"
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleShareWhatsApp}
+                                disabled={!phoneData.number || phoneData.number.length < 5}
+                                className="btn btn-primary"
+                                style={{ background: (phoneData.number && phoneData.number.length >= 5) ? '#22c55e' : '#cbd5e1' }}
+                            >
+                                <Send size={20} />
+                                Send to WhatsApp
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
