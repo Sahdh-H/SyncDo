@@ -145,6 +145,9 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
 
     test('14. "To Do" statistics update correctly', async ({ page }) => {
         await performLogin(page);
+        // Wait for loading to finish
+        await expect(page.locator('.pulsating')).not.toBeVisible();
+
         const statValue = page.locator('.stat-card').first().locator('.stat-value');
         const initialCount = parseInt(await statValue.innerText());
 
@@ -154,6 +157,9 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
 
     test('15. "Finished" statistics update correctly', async ({ page }) => {
         await performLogin(page);
+        // Wait for loading to finish
+        await expect(page.locator('.pulsating')).not.toBeVisible();
+
         const finishedValue = page.locator('.stat-card').nth(1).locator('.stat-value');
         const initialCount = parseInt(await finishedValue.innerText());
 
@@ -224,9 +230,9 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
         await phoneInput.fill('9876543210');
         await expect(sendBtn).toBeEnabled();
 
-        // Close modal (locator for SVG Close button)
-        await page.locator('.card button svg').last().click();
-        await expect(page.getByText('Share Task')).not.toBeVisible();
+        // Close modal (use icon name or unique position)
+        await page.locator('.card button .lucide-x').click();
+        await expect(page.getByRole('heading', { name: 'Share Task' })).not.toBeVisible();
     });
 
     test('22. Email Share: Modal opens and validates input', async ({ page }) => {
@@ -254,8 +260,8 @@ test.describe('SyncDo ToDo Application - Comprehensive Test Suite', () => {
         await expect(sendBtn).toBeEnabled();
 
         // Close modal
-        await page.locator('.card button svg').last().click();
-        await expect(page.getByText('Share Task')).not.toBeVisible();
+        await page.locator('.card button .lucide-x').click();
+        await expect(page.getByRole('heading', { name: 'Share Task' })).not.toBeVisible();
     });
 
 });

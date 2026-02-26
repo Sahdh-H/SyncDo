@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, LogOut, RefreshCcw, Trash2, Check, Calendar, Clock, Smile, Share2, Send, X } from 'lucide-react';
+import { Plus, LogOut, RefreshCcw, Trash2, Check, Calendar, Clock, Smile, Share2, Send, X, Mail } from 'lucide-react';
 import axios from 'axios';
 
 const Dashboard = ({ token, setToken }) => {
@@ -123,11 +123,11 @@ const Dashboard = ({ token, setToken }) => {
 
             <div className="stats-grid">
                 <div className="stat-card">
-                    <p className="stat-value">{tasks.filter(t => !t.is_completed).length}</p>
+                    <p className="stat-value">{Array.isArray(tasks) ? tasks.filter(t => !t.is_completed).length : 0}</p>
                     <p className="stat-label">To Do</p>
                 </div>
                 <div className="stat-card">
-                    <p className="stat-value" style={{ color: '#10b981' }}>{tasks.filter(t => t.is_completed).length}</p>
+                    <p className="stat-value" style={{ color: '#10b981' }}>{Array.isArray(tasks) ? tasks.filter(t => t.is_completed).length : 0}</p>
                     <p className="stat-label">Finished</p>
                 </div>
             </div>
@@ -221,7 +221,7 @@ const Dashboard = ({ token, setToken }) => {
                         <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                             <div className="pulsating">Loading your tasks...</div>
                         </div>
-                    ) : (tasks.filter(t => activeTab === 'history' ? t.is_completed : !t.is_completed)).length === 0 ? (
+                    ) : (Array.isArray(tasks) ? tasks.filter(t => activeTab === 'history' ? t?.is_completed : !t?.is_completed) : []).length === 0 ? (
                         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
                             <Smile size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem auto' }} />
                             <p style={{ color: '#64748b', fontWeight: 600 }}>
@@ -229,8 +229,8 @@ const Dashboard = ({ token, setToken }) => {
                             </p>
                         </div>
                     ) : (
-                        tasks
-                            .filter(t => activeTab === 'history' ? t.is_completed : !t.is_completed)
+                        Array.isArray(tasks) && tasks
+                            .filter(t => activeTab === 'history' ? t?.is_completed : !t?.is_completed)
                             .map(task => (
                                 <motion.div
                                     layout
