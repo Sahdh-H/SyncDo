@@ -18,13 +18,13 @@ Ensure both the **Backend** and **Frontend** servers are running:
 - **Frontend**: `npm run dev` (Default: http://localhost:5173)
 
 ### 2. Run Tests (Headless)
-To run all tests in the background (Default):
+To run all tests in the background (Default Recommended):
 ```bash
 npx playwright test
 ```
 
 ### 3. Run Tests (Headed Mode)
-To see the browser automate the tests in real-time:
+To see the browser automate the tests in real-time (Optional):
 ```bash
 npx playwright test --headed
 ```

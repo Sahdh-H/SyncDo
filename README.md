@@ -33,7 +33,7 @@ The frontend will run at `http://localhost:5173`.
 Ensure both the backend and frontend are running, then:
 ```bash
 cd frontend
-npx playwright test --headed
+npx playwright test
 ```
 You can view the detailed HTML report with `npx playwright show-report`.
 
